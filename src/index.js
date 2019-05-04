@@ -48,11 +48,11 @@ app.post('/generate', async (req, res) => {
   // console.log(lunchRestaurant)
 
   // const lunchPhoto = await getPlacePhoto(lunchRestaurant.photos[0].photo_reference)
-  // const lunchPlace = await getPlace(lunchRestaurant.place_id)
-  // console.log(lunchPlace)
+  const lunchPlace = await getPlace(lunchRestaurant.place_id)
+  console.log(lunchPlace)
 
   // console.log(lunchPlace.photos[0].photo_reference)
-  // const lunchPhoto = await getPlacePhoto(lunchPlace.photos[1].photo_reference)
+  // const lunchPhoto = await getPlacePhoto(lunchPlace.photos[0].photo_reference)
   // console.log(lunchPhoto)
 
   const dinnerRestaurant = await getNearbyRestaurant(location.cityLatLong)
@@ -76,14 +76,17 @@ app.post('/generate', async (req, res) => {
       {
         // morningevent: null,
         lunch: {
-          // imageURL: lunchPhoto,
+          time: ['12:00pm', '1:30pm'],
+          memes: lunchPlace,
           name: lunchRestaurant.name,
           rating: lunchRestaurant.rating
         },
         middayevent: {
+          time: ['20pm', '4:30pm'],
           name: middayevent.name
         },
         dinner: {
+          time: ['5:30pm', '7:00pm'],
           // imageURL: dinnerPhoto,
           name: dinnerRestaurant.name,
           rating: dinnerRestaurant.rating
