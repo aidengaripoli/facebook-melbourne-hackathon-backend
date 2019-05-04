@@ -36,65 +36,23 @@ app.post('/generate', async (req, res) => {
   // dates
   const startDate = moment(startTimestamp)
   const endDate = moment(endTimestamp)
-  const days = endDate.diff(startDate, 'days', false)
+  const numDays = endDate.diff(startDate, 'days', false)
 
   // hotel
-  if (days > 1) {
+  let hotel = null
+  if (numDays > 1) {
     // need a hotel
+    nearbyHotel = await getNearbyHotel(location.cityLatLong)
+    hotel = { name: nearbyHotel.name, nights: numDays - 1 }
   }
 
-  // nearby food
-  const lunchRestaurant = await getNearbyRestaurant(location.cityLatLong)
-  // console.log(lunchRestaurant)
-
-  // const lunchPhoto = await getPlacePhoto(lunchRestaurant.photos[0].photo_reference)
-  const lunchPlace = await getPlace(lunchRestaurant.place_id)
-  console.log(lunchPlace)
-
-  // console.log(lunchPlace.photos[0].photo_reference)
-  // const lunchPhoto = await getPlacePhoto(lunchPlace.photos[0].photo_reference)
-  // console.log(lunchPhoto)
-
-  const dinnerRestaurant = await getNearbyRestaurant(location.cityLatLong)
-
-  // categories keywords
-  const keywords = {
-    romantic: ['beaches', 'cinemas', 'gardens', 'zoos', 'aquarium', 'rooftop bars'],
-    sport: ['stadiums', 'arenas'],
-    nature: [],
-    historic: []
+  let days = []
+  for (let i = 0; i < numDays; i++) {
+    days.push(await generateDay(location, criteria))
   }
-
-  // this needs to be fixed!
-  let firstCriteria = criteria[0].toLowerCase()
-  let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
-  const middayevent = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
 
   // return the plan
-  return res.status(200).json({
-    plan: [
-      {
-        // morningevent: null,
-        lunch: {
-          time: ['12:00pm', '1:30pm'],
-          memes: lunchPlace,
-          name: lunchRestaurant.name,
-          rating: lunchRestaurant.rating
-        },
-        middayevent: {
-          time: ['20pm', '4:30pm'],
-          name: middayevent.name
-        },
-        dinner: {
-          time: ['5:30pm', '7:00pm'],
-          // imageURL: dinnerPhoto,
-          name: dinnerRestaurant.name,
-          rating: dinnerRestaurant.rating
-        },
-        hotel: null // if required
-      }
-    ]
-  })
+  return res.status(200).json({ plan: days, hotel })
 })
 
 app.post('/email', async (req, res) => {
@@ -135,7 +93,44 @@ app.get('/weather', (res, req) => {
       })
     })
 });
+
 // functions
+async function generateDay(location, criteria) {
+  // nearby food
+  const lunchRestaurant = await getNearbyRestaurant(location.cityLatLong)
+  const dinnerRestaurant = await getNearbyRestaurant(location.cityLatLong)
+
+  // categories keywords
+  const keywords = {
+    romantic: ['beaches', 'cinemas', 'gardens', 'zoos', 'aquarium', 'rooftop bars'],
+    sport: ['stadiums', 'arenas', 'sports', 'recreation'],
+    nature: [],
+    historic: []
+  }
+
+  // this needs to be fixed!
+  let firstCriteria = criteria[0].toLowerCase()
+  let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
+  const middayevent = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
+
+  return {
+    lunch: {
+      time: ['12:00pm', '1:30pm'],
+      name: lunchRestaurant.name,
+      rating: lunchRestaurant.rating
+    },
+    middayevent: {
+      time: ['2:00pm', '4:30pm'],
+      name: middayevent.name
+    },
+    dinner: {
+      time: ['5:30pm', '7:00pm'],
+      name: dinnerRestaurant.name,
+      rating: dinnerRestaurant.rating
+    }
+  }
+}
+
 function getPlace(placeid) {
   return googleMapsClient.place({
     placeid
@@ -158,6 +153,24 @@ function getClosestPlace(query, location) {
   .asPromise()
   .then((response) => {
     let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
+    return response.json.results[index]
+  })
+  .catch((err) => {
+    console.log(err)
+  })
+}
+
+function getNearbyHotel(location) {
+  return googleMapsClient.placesNearby({
+    location,
+    radius: 5000,
+    type: 'hotel',
+    name: 'hotel'
+  })
+  .asPromise()
+  .then((response) => {
+    let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
+    console.log(index)
     return response.json.results[index]
   })
   .catch((err) => {
