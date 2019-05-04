@@ -32,8 +32,6 @@ app.get('/', (req, res) => {
 
 app.post('/generate', async (req, res) => {
   const { startTimestamp, endTimestamp, location, criteria, people } = req.body
-  // location -> { cityName: '', cityLatLong: ',' }
-  console.log(startTimestamp, endTimestamp, location, criteria, people)
   
   // dates
   const startDate = moment(startTimestamp)
@@ -47,6 +45,16 @@ app.post('/generate', async (req, res) => {
 
   // nearby food
   const lunchRestaurant = await getNearbyRestaurant(location.cityLatLong)
+  // console.log(lunchRestaurant)
+
+  // const lunchPhoto = await getPlacePhoto(lunchRestaurant.photos[0].photo_reference)
+  // const lunchPlace = await getPlace(lunchRestaurant.place_id)
+  // console.log(lunchPlace)
+
+  // console.log(lunchPlace.photos[0].photo_reference)
+  // const lunchPhoto = await getPlacePhoto(lunchPlace.photos[1].photo_reference)
+  // console.log(lunchPhoto)
+
   const dinnerRestaurant = await getNearbyRestaurant(location.cityLatLong)
 
   // categories keywords
@@ -57,18 +65,18 @@ app.post('/generate', async (req, res) => {
     historic: []
   }
 
+  // this needs to be fixed!
   let firstCriteria = criteria[0].toLowerCase()
-  console.log(firstCriteria)
-  console.log(keywords[firstCriteria][0])
   let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
   const middayevent = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
 
   // return the plan
-  res.status(200).json({
+  return res.status(200).json({
     plan: [
       {
         // morningevent: null,
         lunch: {
+          // imageURL: lunchPhoto,
           name: lunchRestaurant.name,
           rating: lunchRestaurant.rating
         },
@@ -76,6 +84,7 @@ app.post('/generate', async (req, res) => {
           name: middayevent.name
         },
         dinner: {
+          // imageURL: dinnerPhoto,
           name: dinnerRestaurant.name,
           rating: dinnerRestaurant.rating
         },
@@ -124,16 +133,28 @@ app.get('/weather', (res, req) => {
     })
 });
 // functions
+function getPlace(placeid) {
+  return googleMapsClient.place({
+    placeid
+  })
+  .asPromise()
+  .then((response) => {
+    return response.json.result
+  })
+  .catch((err) => {
+    console.log(err)
+  })
+}
+
 function getClosestPlace(query, location) {
   return googleMapsClient.places({
     query,
-    // location: '-37.8207879,144.9561307',
     location,
     radius: 5000
   })
   .asPromise()
   .then((response) => {
-    let index = Math.floor(Math.random() * (3 - 0) + 0)
+    let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
     return response.json.results[index]
   })
   .catch((err) => {
@@ -171,11 +192,25 @@ function getNearbyRestaurant(location) {
   .asPromise()
   .then((response) => {
     let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
-    console.log(index)
     return response.json.results[index]
   })
   .catch((err) => {
     console.log(err)
+  })
+}
+
+function getPlacePhoto(photoreference) {
+  return googleMapsClient.placesPhoto({
+    photoreference,
+    maxwidth: 400
+  })
+  .asPromise()
+  .then((response) => {
+    console.log(response.error_message)
+    return response
+  })
+  .catch((err) => {
+    console.log('PHOTO ERROR')
   })
 }
 
