@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 
 app.post('/generate', async (req, res) => {
   const { startTimestamp, endTimestamp, location, criteria, people } = req.body
-  
+
   // dates
   const startDate = moment(startTimestamp)
   const endDate = moment(endTimestamp)
@@ -55,8 +55,7 @@ app.post('/generate', async (req, res) => {
   }
 
   let days = []
-  let weathers = await getWeatherForecast(location.cityLatLong);
-  for (let i = 0; i <= numDays - 1; i++) {
+  for (let i = 0; i <= numDays; i++) {
     let newDay = await generateDay(location, criteria)
     newDay.date = startTimestamp + (i * 86400000)
     days.push(newDay)
@@ -99,7 +98,7 @@ app.post('/email', async (req, res) => {
     html: content
     // html: "<b>Hello world?</b>" // html body
   }).then(() => {
-    res.send({'message': 'success'});
+    res.send({ 'message': 'success' });
     console.log("lol");
   });
 });
@@ -124,10 +123,10 @@ async function generateDay(location, criteria) {
 
   let morningindex = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
   let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
-  
+
   const morningeventPlace = await getClosestPlace(`${keywords[firstCriteria][morningindex]} in ${location.cityName}`)
   const morningeventPlaceDetail = await getPlace(morningeventPlace.place_id)
-  
+
   const middayeventPlace = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
   const middayeventPlaceDetail = await getPlace(middayeventPlace.place_id)
 
@@ -176,13 +175,13 @@ function getPlace(placeid) {
   return googleMapsClient.place({
     placeid
   })
-  .asPromise()
-  .then((response) => {
-    return response.json.result
-  })
-  .catch((err) => {
-    console.log(err)
-  })
+    .asPromise()
+    .then((response) => {
+      return response.json.result
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 function getClosestPlace(query, location) {
@@ -191,14 +190,14 @@ function getClosestPlace(query, location) {
     location,
     radius: 10000
   })
-  .asPromise()
-  .then((response) => {
-    let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
-    return response.json.results[index]
-  })
-  .catch((err) => {
-    console.log(err)
-  })
+    .asPromise()
+    .then((response) => {
+      let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
+      return response.json.results[index]
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 function getNearbyHotel(location) {
@@ -208,15 +207,15 @@ function getNearbyHotel(location) {
     type: 'hotel',
     name: 'hotel'
   })
-  .asPromise()
-  .then((response) => {
-    let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
-    console.log(index)
-    return response.json.results[index]
-  })
-  .catch((err) => {
-    console.log(err)
-  })
+    .asPromise()
+    .then((response) => {
+      let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
+      console.log(index)
+      return response.json.results[index]
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 function getNearbyRestaurant(location) {
@@ -227,15 +226,15 @@ function getNearbyRestaurant(location) {
     type: 'restaurant',
     name: 'restaurant'
   })
-  .asPromise()
-  .then((response) => {
-    let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
-    console.log(index)
-    return response.json.results[index]
-  })
-  .catch((err) => {
-    console.log(err)
-  })
+    .asPromise()
+    .then((response) => {
+      let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
+      console.log(index)
+      return response.json.results[index]
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 function getNearbyRestaurant(location) {
@@ -246,14 +245,14 @@ function getNearbyRestaurant(location) {
     type: 'restaurant',
     name: 'restaurant'
   })
-  .asPromise()
-  .then((response) => {
-    let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
-    return response.json.results[index]
-  })
-  .catch((err) => {
-    console.log(err)
-  })
+    .asPromise()
+    .then((response) => {
+      let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
+      return response.json.results[index]
+    })
+    .catch((err) => {
+      console.log(err)
+    })
 }
 
 function getWeatherForecast(location) {
