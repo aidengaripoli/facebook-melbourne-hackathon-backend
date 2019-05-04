@@ -117,16 +117,19 @@ async function generateDay(location, criteria) {
     lunch: {
       time: ['12:00pm', '1:30pm'],
       name: lunchRestaurant.name,
-      rating: lunchRestaurant.rating
+      rating: lunchRestaurant.rating,
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${lunchRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
     },
     middayevent: {
       time: ['2:00pm', '4:30pm'],
-      name: middayevent.name
+      name: middayevent.name,
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${middayevent.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
     },
     dinner: {
       time: ['5:30pm', '7:00pm'],
       name: dinnerRestaurant.name,
-      rating: dinnerRestaurant.rating
+      rating: dinnerRestaurant.rating,
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${dinnerRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
     }
   }
 }
@@ -222,7 +225,6 @@ function getPlacePhoto(photoreference) {
   })
   .asPromise()
   .then((response) => {
-    console.log(response.error_message)
     return response
   })
   .catch((err) => {
