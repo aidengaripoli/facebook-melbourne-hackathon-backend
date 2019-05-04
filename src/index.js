@@ -55,6 +55,7 @@ app.post('/generate', async (req, res) => {
   }
 
   let days = []
+  let weathers = await getWeatherForecast(location.cityLatLong);
   for (let i = 0; i <= numDays; i++) {
     let newDay = await generateDay(location, criteria)
     newDay.date = startTimestamp + (i * 86400000)
