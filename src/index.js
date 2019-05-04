@@ -2,9 +2,11 @@ const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const moment = require('moment')
+const cors = require('cors')
 
 const app = express()
 
+app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
@@ -28,7 +30,7 @@ app.get('/', (req, res) => {
 app.post('/generate', async (req, res) => {
   const { startTimestamp, endTimestamp, location, criteria, people } = req.body
   // location -> { cityName: '', cityLatLong: ',' }
-  console.log(startTimestamp, endTimestamp, criteria, people)
+  console.log(startTimestamp, endTimestamp, location, criteria, people)
   
   // dates
   const startDate = moment(startTimestamp)
@@ -44,17 +46,19 @@ app.post('/generate', async (req, res) => {
   const lunchRestaurant = await getNearbyRestaurant(location.cityLatLong)
   const dinnerRestaurant = await getNearbyRestaurant(location.cityLatLong)
 
-  console.log(lunchRestaurant)
-
   // categories keywords
   const keywords = {
-    romantic: ['beaches', 'cinemas', 'gardens'],
+    romantic: ['beaches', 'cinemas', 'gardens', 'zoos', 'aquarium', 'rooftop bars'],
     sport: ['stadiums', 'arenas'],
     nature: [],
     historic: []
   }
 
-  const middayevent = await getNearbyPlace(`${keywords[criteria]} in ${location.cityName}`)
+  let firstCriteria = criteria[0].toLowerCase()
+  console.log(firstCriteria)
+  console.log(keywords[firstCriteria][0])
+  let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
+  const middayevent = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
 
   // return the plan
   res.status(200).json({
@@ -65,7 +69,9 @@ app.post('/generate', async (req, res) => {
           name: lunchRestaurant.name,
           rating: lunchRestaurant.rating
         },
-        middayevent: null,
+        middayevent: {
+          name: middayevent.name
+        },
         dinner: {
           name: dinnerRestaurant.name,
           rating: dinnerRestaurant.rating
@@ -77,16 +83,17 @@ app.post('/generate', async (req, res) => {
 })
 
 // functions
-function getNearbyPlace(query, location) {
+function getClosestPlace(query, location) {
   return googleMapsClient.places({
     query,
     // location: '-37.8207879,144.9561307',
     location,
-    radius: 500
+    radius: 5000
   })
   .asPromise()
   .then((response) => {
-    return response.json.results[0]
+    let index = Math.floor(Math.random() * (3 - 0) + 0)
+    return response.json.results[index]
   })
   .catch((err) => {
     console.log(err)
@@ -97,17 +104,33 @@ function getNearbyRestaurant(location) {
   return googleMapsClient.placesNearby({
     // location: '-37.8207879,144.9561307',
     location,
-    radius: 500,
+    radius: 5000,
     type: 'restaurant',
     name: 'restaurant'
   })
   .asPromise()
   .then((response) => {
-    // console.log(response.json.results.length)
     let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
     console.log(index)
-    // response.json.results[index].name
-    // console.log(response.json.results[index].name)
+    return response.json.results[index]
+  })
+  .catch((err) => {
+    console.log(err)
+  })
+}
+
+function getNearbyRestaurant(location) {
+  return googleMapsClient.placesNearby({
+    // location: '-37.8207879,144.9561307',
+    location,
+    radius: 5000,
+    type: 'restaurant',
+    name: 'restaurant'
+  })
+  .asPromise()
+  .then((response) => {
+    let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
+    console.log(index)
     return response.json.results[index]
   })
   .catch((err) => {
