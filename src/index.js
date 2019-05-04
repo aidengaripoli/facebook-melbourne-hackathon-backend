@@ -43,7 +43,13 @@ app.post('/generate', async (req, res) => {
   if (numDays > 1) {
     // need a hotel
     nearbyHotel = await getNearbyHotel(location.cityLatLong)
-    hotel = { name: nearbyHotel.name, nights: numDays - 1 }
+    hotelDetail = await getPlace(nearbyHotel.place_id)
+    hotel = {
+      name: nearbyHotel.name,
+      nights: numDays - 1,
+      rating: nearbyHotel.rating,
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${nearbyHotel.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+    }
   }
 
   let days = []
@@ -102,6 +108,9 @@ async function generateDay(location, criteria) {
   const lunchRestaurant = await getNearbyRestaurant(location.cityLatLong)
   const dinnerRestaurant = await getNearbyRestaurant(location.cityLatLong)
 
+  const lunchRestaurantDetail = await getPlace(lunchRestaurant.place_id)
+  const dinnerRestaurantDetail = await getPlace(dinnerRestaurant.place_id)
+
   // categories keywords
   const keywords = {
     romantic: ['beaches', 'cinemas', 'gardens', 'zoos', 'aquarium', 'rooftop bars'],
@@ -112,24 +121,31 @@ async function generateDay(location, criteria) {
   let firstCriteria = criteria[0].toLowerCase()
   let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
   const middayevent = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
+  const middayeventDetail = await getPlace(middayevent.place_id)
 
   return {
     lunch: {
       time: ['12:00pm', '1:30pm'],
       name: lunchRestaurant.name,
       rating: lunchRestaurant.rating,
-      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${lunchRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${lunchRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
+      website: lunchRestaurantDetail.website,
+      address: lunchRestaurantDetail.formatted_address
     },
     middayevent: {
       time: ['2:00pm', '4:30pm'],
       name: middayevent.name,
-      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${middayevent.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${middayevent.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
+      website: middayeventDetail.website,
+      address: middayeventDetail.formatted_address
     },
     dinner: {
       time: ['5:30pm', '7:00pm'],
       name: dinnerRestaurant.name,
       rating: dinnerRestaurant.rating,
-      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${dinnerRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${dinnerRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
+      website: dinnerRestaurantDetail.website,
+      address: dinnerRestaurantDetail.formatted_address
     }
   }
 }
