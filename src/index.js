@@ -47,8 +47,10 @@ app.post('/generate', async (req, res) => {
     hotel = {
       name: nearbyHotel.name,
       nights: numDays - 1,
+      address: hotelDetail.formatted_address,
       rating: nearbyHotel.rating,
-      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${nearbyHotel.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${nearbyHotel.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
+      website: hotelDetail.website
     }
   }
 
@@ -119,11 +121,24 @@ async function generateDay(location, criteria) {
 
   // this needs to be fixed!
   let firstCriteria = criteria[0].toLowerCase()
+
+  let morningindex = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
   let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
+  
+  const morningevent = await getClosestPlace(`${keywords[firstCriteria][morningindex]} in ${location.cityName}`)
+  const morningeventDetail = await getPlace(morningevent.place_id)
+  
   const middayevent = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
   const middayeventDetail = await getPlace(middayevent.place_id)
 
   return {
+    morningevent: {
+      time: ['9:00am', '11:30am'],
+      name: morningevent.name,
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${morningevent.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
+      website: morningeventDetail.website,
+      address: morningeventDetail.formatted_address
+    },
     lunch: {
       time: ['12:00pm', '1:30pm'],
       name: lunchRestaurant.name,
