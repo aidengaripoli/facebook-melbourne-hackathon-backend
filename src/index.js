@@ -67,12 +67,27 @@ app.post('/email', async (req, res) => {
       pass: "c3478de1b31297"
     }
   });
+  let data = [{
+    day: "2019-05-09",
+    place: [{name: 'n1', image: "example.com"}, {name: 'n2', image:"example.com"}],
+    hotel: "hotelname",
+    weather: "sunny"
+  }]
+  let content = "";
+  data.forEach(item => {
+     content += "<b>"+ item.day +"</b>";
+     item.place.forEach(place => {
+       content += "<p>" + place.name + "</p>";
+       content += "<img src=" + place.image + ">"
+     })
+  });
   let info = await transporter.sendMail({
     from: '"Fred Foo " <foo@example.com>', // sender address
     to: "29fe75dbfe-0ea057@inbox.mailtrap.io", // list of receivers
     subject: "Hello", // Subject line
     text: "Hello world?", // plain text body
-    html: "<b>Hello world?</b>" // html body
+    html: content
+    // html: "<b>Hello world?</b>" // html body
   }).then(() => {
     res.send({'message': 'success'});
     console.log("lol");
@@ -223,14 +238,12 @@ function getWeatherForecast(location) {
   return axios.get(request).then(res => {return res.data}).then(data => {
     // console.log(data.daily.data[0].precipType)
     let forecasts = data.daily.data;
-    let weathers = []
+    let weathers = [];
     forecasts.forEach(data => {
-      // candidate type rain, snow, sleet
-      // if null, good weather
-      // console.log(data.precipType);
       weathers.push(data.precipType);
     });
     return weathers;
-  });
+  })
+}
 
-app.listen(3000, () => console.log('listening on port 3000'))
+app.listen(3000, () => console.log('listening on port 3000'));
