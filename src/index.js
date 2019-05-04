@@ -67,6 +67,7 @@ app.post('/generate', async (req, res) => {
 })
 
 app.post('/email', async (req, res) => {
+  // console.log(req.body);
   let testAccount = await nodemailer.createTestAccount();
   let transporter = nodemailer.createTransport({
     host: "smtp.mailtrap.io",
@@ -76,19 +77,18 @@ app.post('/email', async (req, res) => {
       pass: "c3478de1b31297"
     }
   });
-  let data = [{
-    day: "2019-05-09",
-    place: [{name: 'n1', image: "example.com"}, {name: 'n2', image:"example.com"}],
-    hotel: "hotelname",
-    weather: "sunny"
-  }]
   let content = "";
-  data.forEach(item => {
-     content += "<b>"+ item.day +"</b>";
-     item.place.forEach(place => {
-       content += "<p>" + place.name + "</p>";
-       content += "<img src=" + place.image + ">"
-     })
+  req.body.forEach(item => {
+    content += "<b>" + moment(item.date).format("dddd, MMMM Do") + "</b>";
+    content += "<p>morningevent: " + item.morningevent.name + "</p>";
+    content += "<img src=" + item.morningevent.photo + ">"
+    content += "<p>lunch: " + item.lunch.name + "</p>";
+    content += "<img src=" + item.lunch.photo + ">"
+    content += "<p>middayevent: " + item.middayevent.name + "</p>";
+    content += "<img src=" + item.middayevent.photo + ">"
+    content += "<p>dinner: " + item.dinner.name + "</p>";
+    content += "<img src=" + item.dinner.photo + ">"
+    content += "<br>";
   });
   let info = await transporter.sendMail({
     from: '"Fred Foo " <foo@example.com>', // sender address
