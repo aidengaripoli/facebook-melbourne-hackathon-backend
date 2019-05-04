@@ -115,12 +115,16 @@ async function generateDay(location, criteria) {
 
   // categories keywords
   const keywords = {
-    romantic: ['beaches', 'cinemas', 'gardens', 'zoos', 'aquarium', 'rooftop bars'],
-    sport: ['stadiums', 'arenas', 'sports', 'recreation']
+    romantic: ['beaches', 'cinemas', 'gardens', 'zoos', 'aquarium', 'rooftop bars', 'stadiums', 'arenas', 'sports', 'recreation'],
+    sport: ['stadiums', 'arenas', 'sports', 'recreation'],
+    nature: ['stadiums', 'arenas', 'sports', 'recreation'],
+    scenery: ['stadiums', 'arenas', 'sports', 'recreation'],
+    historic: ['stadiums', 'arenas', 'sports', 'recreation'],
+    museum: ['stadiums', 'arenas', 'sports', 'recreation']
   }
 
   // this needs to be fixed!
-  let firstCriteria = criteria[0].toLowerCase()
+  let firstCriteria = 'romantic';
 
   let morningindex = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
   let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
@@ -155,7 +159,7 @@ async function generateDay(location, criteria) {
     website: lunchRestaurantDetail.website,
     address: lunchRestaurantDetail.formatted_address
   }
-  
+
   let middayPhotoIndex = 0
   if (middayeventPlaceDetail.photos) {
     middayPhotoIndex = Math.floor(Math.random() * (middayeventPlaceDetail.photos.length - 0) + 0)
@@ -272,7 +276,7 @@ function getNearbyRestaurant(location) {
 function getWeatherForecast(location) {
   request = "https://api.darksky.net/forecast/376d0c405226b9b108c454f5186a72c8/" + location;
   // change the latitude and longtitude later
-  return axios.get(request).then(res => {return res.data}).then(data => {
+  return axios.get(request).then(res => { return res.data }).then(data => {
     // console.log(data.daily.data[0].precipType)
     let forecasts = data.daily.data;
     let weathers = [];
