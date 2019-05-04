@@ -48,7 +48,9 @@ app.post('/generate', async (req, res) => {
 
   let days = []
   for (let i = 0; i < numDays; i++) {
-    days.push(await generateDay(location, criteria))
+    let newDay = await generateDay(location, criteria)
+    newDay.date = startTimestamp + (i * 86400000)
+    days.push(newDay)
   }
 
   // return the plan
@@ -103,9 +105,7 @@ async function generateDay(location, criteria) {
   // categories keywords
   const keywords = {
     romantic: ['beaches', 'cinemas', 'gardens', 'zoos', 'aquarium', 'rooftop bars'],
-    sport: ['stadiums', 'arenas', 'sports', 'recreation'],
-    nature: [],
-    historic: []
+    sport: ['stadiums', 'arenas', 'sports', 'recreation']
   }
 
   // this needs to be fixed!
@@ -118,18 +118,18 @@ async function generateDay(location, criteria) {
       time: ['12:00pm', '1:30pm'],
       name: lunchRestaurant.name,
       rating: lunchRestaurant.rating,
-      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${lunchRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${lunchRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
     },
     middayevent: {
       time: ['2:00pm', '4:30pm'],
       name: middayevent.name,
-      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${middayevent.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${middayevent.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
     },
     dinner: {
       time: ['5:30pm', '7:00pm'],
       name: dinnerRestaurant.name,
       rating: dinnerRestaurant.rating,
-      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${dinnerRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${dinnerRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
     }
   }
 }
@@ -215,20 +215,6 @@ function getNearbyRestaurant(location) {
   })
   .catch((err) => {
     console.log(err)
-  })
-}
-
-function getPlacePhoto(photoreference) {
-  return googleMapsClient.placesPhoto({
-    photoreference,
-    maxwidth: 400
-  })
-  .asPromise()
-  .then((response) => {
-    return response
-  })
-  .catch((err) => {
-    console.log('PHOTO ERROR')
   })
 }
 
