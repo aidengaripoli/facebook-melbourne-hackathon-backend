@@ -1,9 +1,15 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const nodemailer = require('nodemailer');
+// const https = require("https");
+const axios = require('axios');
+const moment = require('moment')
+const cors = require('cors')
 
 const app = express()
 
+app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
@@ -15,66 +21,40 @@ app.use(bodyParser.json())
 //   process.exit()
 // })
 
+const googleMapsClient = require('@google/maps').createClient({
+  key: 'AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk',
+  Promise: Promise
+})
+
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'api' })
 })
 
 app.post('/generate', async (req, res) => {
   const { startTimestamp, endTimestamp, location, criteria, people } = req.body
-  // location -> { cityName: '', cityLatLong: ',' }
-  console.log(startTimestamp, endTimestamp, location, criteria, people)
-  // console.log(location.cityLatLong.split(','));
   
   // dates
   const startDate = moment(startTimestamp)
   const endDate = moment(endTimestamp)
-  const days = endDate.diff(startDate, 'days', false)
+  const numDays = endDate.diff(startDate, 'days', false)
 
   // hotel
-  if (days > 1) {
+  let hotel = null
+  if (numDays > 1) {
     // need a hotel
+    nearbyHotel = await getNearbyHotel(location.cityLatLong)
+    hotel = { name: nearbyHotel.name, nights: numDays - 1 }
   }
 
-  // nearby food
-  const lunchRestaurant = await getNearbyRestaurant(location.cityLatLong)
-  const dinnerRestaurant = await getNearbyRestaurant(location.cityLatLong)
-  const weatherForecasts = await getWeatherForecast(location.cityLatLong);
-
-  // categories keywords
-  const keywords = {
-    romantic: ['beaches', 'cinemas', 'gardens', 'zoos', 'aquarium', 'rooftop bars'],
-    sport: ['stadiums', 'arenas'],
-    nature: [],
-    historic: []
+  let days = []
+  let forecasts = []
+  for (let i = 0; i < numDays; i++) {
+    days.push(await generateDay(location, criteria))
+    forecasts.push(await getWeatherForecast(location.cityLatLong));
   }
-
-  let firstCriteria = criteria[0].toLowerCase()
-  console.log(firstCriteria)
-  console.log(keywords[firstCriteria][0])
-  let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
-  const middayevent = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
 
   // return the plan
-  res.status(200).json({
-    plan: [
-      {
-        // morningevent: null,
-        lunch: {
-          name: lunchRestaurant.name,
-          rating: lunchRestaurant.rating
-        },
-        middayevent: {
-          name: middayevent.name
-        },
-        dinner: {
-          name: dinnerRestaurant.name,
-          rating: dinnerRestaurant.rating
-        },
-        weather: weatherForecasts[0],
-        hotel: null // if required
-      }
-    ]
-  })
+  return res.status(200).json({ plan: days, weather: forecasts, hotel })
 })
 
 app.post('/email', async (req, res) => {
@@ -100,16 +80,67 @@ app.post('/email', async (req, res) => {
 });
 
 // functions
+async function generateDay(location, criteria) {
+  // nearby food
+  const lunchRestaurant = await getNearbyRestaurant(location.cityLatLong)
+  const dinnerRestaurant = await getNearbyRestaurant(location.cityLatLong)
+
+  // categories keywords
+  const keywords = {
+    romantic: ['beaches', 'cinemas', 'gardens', 'zoos', 'aquarium', 'rooftop bars'],
+    sport: ['stadiums', 'arenas', 'sports', 'recreation'],
+    nature: [],
+    historic: []
+  }
+
+  // this needs to be fixed!
+  let firstCriteria = criteria[0].toLowerCase()
+  let index = Math.floor(Math.random() * (keywords[firstCriteria].length - 0) + 0)
+  const middayevent = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
+
+  return {
+    lunch: {
+      time: ['12:00pm', '1:30pm'],
+      name: lunchRestaurant.name,
+      rating: lunchRestaurant.rating,
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${lunchRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+    },
+    middayevent: {
+      time: ['2:00pm', '4:30pm'],
+      name: middayevent.name,
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${middayevent.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+    },
+    dinner: {
+      time: ['5:30pm', '7:00pm'],
+      name: dinnerRestaurant.name,
+      rating: dinnerRestaurant.rating,
+      photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${dinnerRestaurant.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`
+    }
+  }
+}
+
+function getPlace(placeid) {
+  return googleMapsClient.place({
+    placeid
+  })
+  .asPromise()
+  .then((response) => {
+    return response.json.result
+  })
+  .catch((err) => {
+    console.log(err)
+  })
+}
+
 function getClosestPlace(query, location) {
   return googleMapsClient.places({
     query,
-    // location: '-37.8207879,144.9561307',
     location,
     radius: 5000
   })
   .asPromise()
   .then((response) => {
-    let index = Math.floor(Math.random() * (3 - 0) + 0)
+    let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
     return response.json.results[index]
   })
   .catch((err) => {
@@ -117,13 +148,12 @@ function getClosestPlace(query, location) {
   })
 }
 
-function getNearbyRestaurant(location) {
+function getNearbyHotel(location) {
   return googleMapsClient.placesNearby({
-    // location: '-37.8207879,144.9561307',
     location,
     radius: 5000,
-    type: 'restaurant',
-    name: 'restaurant'
+    type: 'hotel',
+    name: 'hotel'
   })
   .asPromise()
   .then((response) => {
@@ -152,6 +182,38 @@ function getNearbyRestaurant(location) {
   })
   .catch((err) => {
     console.log(err)
+  })
+}
+
+function getNearbyRestaurant(location) {
+  return googleMapsClient.placesNearby({
+    // location: '-37.8207879,144.9561307',
+    location,
+    radius: 5000,
+    type: 'restaurant',
+    name: 'restaurant'
+  })
+  .asPromise()
+  .then((response) => {
+    let index = Math.floor(Math.random() * (response.json.results.length - 0) + 0)
+    return response.json.results[index]
+  })
+  .catch((err) => {
+    console.log(err)
+  })
+}
+
+function getPlacePhoto(photoreference) {
+  return googleMapsClient.placesPhoto({
+    photoreference,
+    maxwidth: 400
+  })
+  .asPromise()
+  .then((response) => {
+    return response
+  })
+  .catch((err) => {
+    console.log('PHOTO ERROR')
   })
 }
 
@@ -170,6 +232,5 @@ function getWeatherForecast(location) {
     });
     return weathers;
   });
-}
 
 app.listen(3000, () => console.log('listening on port 3000'))
