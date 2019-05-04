@@ -47,16 +47,16 @@ app.post('/generate', async (req, res) => {
   }
 
   let days = []
-  let forecasts = []
+  let weathers = await getWeatherForecast(location.cityLatLong);
   for (let i = 0; i < numDays; i++) {
     let newDay = await generateDay(location, criteria)
     newDay.date = startTimestamp + (i * 86400000)
     days.push(newDay)
-    forecasts.push(await getWeatherForecast(location.cityLatLong));
+    days[i].weather = weathers[i];
   }
 
   // return the plan
-  return res.status(200).json({ plan: days, weather: forecasts, hotel })
+  return res.status(200).json({ plan: days, hotel })
 })
 
 app.post('/email', async (req, res) => {
@@ -226,7 +226,11 @@ function getWeatherForecast(location) {
     let forecasts = data.daily.data;
     let weathers = [];
     forecasts.forEach(data => {
-      weathers.push(data.precipType);
+      if (data.hasOwnProperty("precipType")) {
+        weathers.push("rainy");
+      } else {
+        weathers.push("sunny");
+      }
     });
     return weathers;
   })
