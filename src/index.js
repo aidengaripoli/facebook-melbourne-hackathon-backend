@@ -1,14 +1,11 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
-<<<<<<< HEAD
 const nodemailer = require('nodemailer');
 // const https = require("https");
 const axios = require('axios');
-=======
 const moment = require('moment')
 const cors = require('cors')
->>>>>>> e91a67133ba4b9318d6962a8c6fcd45b517dca7d
 
 const app = express()
 
