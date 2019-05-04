@@ -40,13 +40,13 @@ app.post('/generate', async (req, res) => {
 
   // hotel
   let hotel = null
-  if (numDays > 1) {
+  if (numDays >= 1) {
     // need a hotel
     nearbyHotel = await getNearbyHotel(location.cityLatLong)
     hotelDetail = await getPlace(nearbyHotel.place_id)
     hotel = {
       name: nearbyHotel.name,
-      nights: numDays - 1,
+      nights: numDays,
       address: hotelDetail.formatted_address,
       rating: nearbyHotel.rating,
       photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${nearbyHotel.photos[0].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
