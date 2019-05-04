@@ -99,22 +99,6 @@ app.post('/email', async (req, res) => {
   });
 });
 
-// should call with GET / instead
-app.get('/weather', (res, req) => {
-    // key = "e0089bb5191cc5c929574c9f816bba5b";
-    // request = "https://api.openweathermap.org/data/2.5/weather?q=Melbourne&appid=" + key;
-    request = "https://api.darksky.net/forecast/376d0c405226b9b108c454f5186a72c8/37.8267,-122.4233"
-    // change the latitude and longtitude later
-    axios.get(request).then(res => {return res.data}).then(data => {
-      // console.log(data.daily.data[0].precipType)
-      let forecasts = data.daily.data;
-      forecasts.forEach(data => {
-        // candidate type rain, snow, sleet
-        // if null, good weather
-        console.log(data.precipType);
-      })
-    })
-});
 // functions
 function getClosestPlace(query, location) {
   return googleMapsClient.places({
