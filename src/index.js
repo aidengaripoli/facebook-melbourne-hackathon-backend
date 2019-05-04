@@ -131,40 +131,53 @@ async function generateDay(location, criteria) {
   const middayeventPlace = await getClosestPlace(`${keywords[firstCriteria][index]} in ${location.cityName}`)
   const middayeventPlaceDetail = await getPlace(middayeventPlace.place_id)
 
-  let morningPhotoIndex = Math.floor(Math.random() * (morningeventPlaceDetail.photos.length - 0) + 0)
+  let morningPhotoIndex = 0
+  if (morningeventPlaceDetail.photos) {
+    morningPhotoIndex = Math.floor(Math.random() * (morningeventPlaceDetail.photos.length - 0) + 0)
+  }
   const morningevent = {
     time: ['9:00am', '11:30am'],
     name: morningeventPlace.name,
-    photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${morningeventPlaceDetail.photos[morningPhotoIndex].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
+    photo: morningeventPlaceDetail.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${morningeventPlaceDetail.photos[morningPhotoIndex].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk` : null,
     website: morningeventPlaceDetail.website,
     address: morningeventPlaceDetail.formatted_address
   }
 
-  let lunchPhotoIndex = Math.floor(Math.random() * (lunchRestaurantDetail.photos.length - 0) + 0)
+  let lunchPhotoIndex = 0
+  if (lunchRestaurantDetail.photos) {
+    lunchPhotoIndex = Math.floor(Math.random() * (lunchRestaurantDetail.photos.length - 0) + 0)
+  }
   const lunch = {
     time: ['12:00pm', '1:30pm'],
     name: lunchRestaurant.name,
     rating: lunchRestaurant.rating,
-    photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${lunchRestaurantDetail.photos[lunchPhotoIndex].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
+    photo: lunchRestaurantDetail.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${lunchRestaurantDetail.photos[lunchPhotoIndex].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk` : null,
     website: lunchRestaurantDetail.website,
     address: lunchRestaurantDetail.formatted_address
   }
+  
+  let middayPhotoIndex = 0
+  if (middayeventPlaceDetail.photos) {
+    middayPhotoIndex = Math.floor(Math.random() * (middayeventPlaceDetail.photos.length - 0) + 0)
+  }
 
-  let middayPhotoIndex = Math.floor(Math.random() * (middayeventPlaceDetail.photos.length - 0) + 0)
   const middayevent = {
     time: ['2:00pm', '4:30pm'],
     name: middayeventPlace.name,
-    photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${middayeventPlaceDetail.photos[middayPhotoIndex].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
+    photo: middayeventPlaceDetail.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${middayeventPlaceDetail.photos[middayPhotoIndex].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk` : null,
     website: middayeventPlaceDetail.website,
     address: middayeventPlaceDetail.formatted_address
   }
 
-  let dinnerPhotoIndex = Math.floor(Math.random() * (dinnerRestaurantDetail.photos.length - 0) + 0)
+  let dinnerPhotoIndex = 0
+  if (dinnerRestaurantDetail.photos) {
+    dinnerPhotoIndex = Math.floor(Math.random() * (dinnerRestaurantDetail.photos.length - 0) + 0)
+  }
   const dinner = {
     time: ['5:30pm', '7:00pm'],
     name: dinnerRestaurant.name,
     rating: dinnerRestaurant.rating,
-    photo: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${dinnerRestaurantDetail.photos[dinnerPhotoIndex].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk`,
+    photo: dinnerRestaurantDetail.photos ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=300&photoreference=${dinnerRestaurantDetail.photos[dinnerPhotoIndex].photo_reference}&key=AIzaSyBtz626NHTfso4tPcJJE2t8rSW3H96heUk` : null,
     website: dinnerRestaurantDetail.website,
     address: dinnerRestaurantDetail.formatted_address
   }
