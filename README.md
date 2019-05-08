@@ -4,7 +4,7 @@ Backend for Facebook Melbourne project.
 
 ## Idea
 
-Automated itinery generated for holidays.
+Automatically generate an itinery for holidays based on desired location.
 
 ## Team Members
 
